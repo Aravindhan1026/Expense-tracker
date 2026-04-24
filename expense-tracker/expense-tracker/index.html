@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker | Student Project</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+
+    <!-- Tailwind Config for Custom Colors -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 transition-colors duration-300">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-wallet text-primary text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight">ExpenseTracker</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Toggle Dark Mode">
+                        <i class="fas fa-moon text-gray-600"></i>
+                    </button>
+                    <button onclick="app.exportToCSV()" class="hidden sm:flex items-center px-3 py-2 rounded-lg bg-primary text-white text-sm hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Summary Cards Section -->
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Balance Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-primary hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Current Balance</p>
+                        <h2 class="text-2xl font-bold text-gray-900" id="displayBalance">$0.00</h2>
+                    </div>
+                    <div class="p-3 bg-indigo-50 rounded-xl">
+                        <i class="fas fa-scale-balanced text-primary text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span id="balanceTrend" class="text-gray-500">--</span>
+                </div>
+            </div>
+
+            <!-- Income Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-success hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total Income</p>
+                        <h2 class="text-2xl font-bold text-gray-900" id="displayIncome">$0.00</h2>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-xl">
+                        <i class="fas fa-arrow-trend-up text-success text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-emerald-600 font-medium" id="incomeCount">0</span>
+                    <span class="text-gray-500 ml-1">transactions</span>
+                </div>
+            </div>
+
+            <!-- Expense Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-danger hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Total Expenses</p>
+                        <h2 class="text-2xl font-bold text-gray-900" id="displayExpense">$0.00</h2>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded-xl">
+                        <i class="fas fa-arrow-trend-down text-danger text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-red-600 font-medium" id="expenseCount">0</span>
+                    <span class="text-gray-500 ml-1">transactions</span>
+                </div>
+            </div>
+
+            <!-- Budget Status Card -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-warning hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 mb-1">Budget Status</p>
+                        <h2 class="text-2xl font-bold text-gray-900" id="budgetStatus">--</h2>
+                    </div>
+                    <div class="p-3 bg-amber-50 rounded-xl">
+                        <i class="fas fa-bullseye text-warning text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="budgetProgress" class="bg-warning h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Monthly Trend Chart -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-chart-line mr-2 text-primary"></i>Monthly Trends
+                    </h3>
+                    <select id="chartPeriod" onchange="charts.renderTrendChart()" class="text-sm border rounded-lg px-3 py-1 bg-gray-50">
+                        <option value="6">Last 6 Months</option>
+                        <option value="12">Last 12 Months</option>
+                        <option value="3">Last 3 Months</option>
+                    </select>
+                </div>
+                <div class="h-72">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Distribution -->
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-6">
+                    <i class="fas fa-chart-pie mr-2 text-primary"></i>By Category
+                </h3>
+                <div class="h-72">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Budget Overview & Quick Stats -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-gray-800">
+                        <i class="fas fa-bullseye mr-2 text-primary"></i>Category Budgets
+                    </h3>
+                    <button onclick="ui.openBudgetModal()" class="text-sm text-primary hover:text-indigo-700 font-medium">
+                        <i class="fas fa-edit mr-1"></i>Edit Budgets
+                    </button>
+                </div>
+                <div id="budgetList" class="space-y-4 max-h-80 overflow-y-auto pr-2">
+                    <!-- Budget items rendered here -->
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-6">
+                    <i class="fas fa-lightbulb mr-2 text-primary"></i>Insights
+                </h3>
+                <div id="insightsList" class="space-y-4">
+                    <!-- Insights rendered here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Transaction Management -->
+        <section class="bg-white rounded-2xl shadow-sm p-6 mb-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h3 class="text-lg font-bold text-gray-800">
+                    <i class="fas fa-list-ul mr-2 text-primary"></i>Transactions
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search..." 
+                            class="pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary w-48">
+                    </div>
+                    <select id="filterType" onchange="ui.renderTransactions()" class="border rounded-lg px-3 py-2 text-sm">
+                        <option value="all">All Types</option>
+                        <option value="income">Income</option>
+                        <option value="expense">Expense</option>
+                    </select>
+                    <select id="filterCategory" onchange="ui.renderTransactions()" class="border rounded-lg px-3 py-2 text-sm">
+                        <option value="all">All Categories</option>
+                    </select>
+                    <select id="sortBy" onchange="ui.renderTransactions()" class="border rounded-lg px-3 py-2 text-sm">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="amount-desc">Highest Amount</option>
+                        <option value="amount-asc">Lowest Amount</option>
+                    </select>
+                    <button onclick="ui.openTransactionModal()" 
+                        class="bg-primary hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Add New
+                    </button>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">Date</th>
+                            <th class="px-4 py-3">Category</th>
+                            <th class="px-4 py-3">Description</th>
+                            <th class="px-4 py-3">Type</th>
+                            <th class="px-4 py-3 text-right">Amount</th>
+                            <th class="px-4 py-3 text-center rounded-tr-lg">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody" class="divide-y divide-gray-100">
+                        <!-- Rows rendered here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="hidden text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                    <i class="fas fa-receipt text-2xl text-gray-400"></i>
+                </div>
+                <h4 class="text-gray-900 font-medium mb-1">No transactions found</h4>
+                <p class="text-gray-500 text-sm">Add a new transaction to get started</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-between items-center mt-6 pt-4 border-t">
+                <span class="text-sm text-gray-500" id="paginationInfo">Showing 0 of 0 transactions</span>
+                <div class="flex gap-2">
+                    <button onclick="ui.prevPage()" id="prevBtn" class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button onclick="ui.nextPage()" id="nextBtn" class="px-3 py-1 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add/Edit Transaction Modal -->
+    <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all scale-95 opacity-0" id="transactionModalContent">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-bold text-gray-900" id="modalTitle">Add Transaction</h3>
+                <button onclick="ui.closeTransactionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="transactionForm" class="p-6 space-y-4">
+                <input type="hidden" id="transactionId">
+
+                <!-- Type Selection -->
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="income" class="peer sr-only">
+                        <div class="text-center py-3 rounded-xl border-2 border-gray-200 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-all">
+                            <i class="fas fa-arrow-down mb-1 block"></i>
+                            <span class="text-sm font-semibold">Income</span>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="type" value="expense" class="peer sr-only" checked>
+                        <div class="text-center py-3 rounded-xl border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 transition-all">
+                            <i class="fas fa-arrow-up mb-1 block"></i>
+                            <span class="text-sm font-semibold">Expense</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <input type="text" id="descInput" required maxlength="100"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                        placeholder="e.g., Weekly groceries">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount *</label>
+                        <input type="number" id="amountInput" required min="0.01" step="0.01"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                            placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                        <input type="date" id="dateInput" required
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+                    <select id="categoryInput" required
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none bg-white">
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="recurringInput" class="w-4 h-4 text-primary rounded">
+                    <label for="recurringInput" class="text-sm text-gray-700">Mark as recurring (monthly)</label>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="ui.closeTransactionModal()" 
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                        Save Transaction
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Settings Modal -->
+    <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all scale-95 opacity-0" id="budgetModalContent">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-xl font-bold text-gray-900">Set Category Budgets</h3>
+                <button onclick="ui.closeBudgetModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-500 mb-4">Set monthly spending limits for each category. Leave empty for no limit.</p>
+                <div id="budgetFormList" class="space-y-3 max-h-96 overflow-y-auto">
+                    <!-- Budget inputs rendered here -->
+                </div>
+                <div class="flex gap-3 mt-6 pt-4 border-t">
+                    <button onclick="ui.closeBudgetModal()" 
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="budget.saveBudgets()" 
+                        class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                        Save Budgets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <!-- JavaScript Modules -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/transactions.js"></script>
+    <script src="js/budget.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

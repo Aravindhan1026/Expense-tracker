@@ -1,0 +1,203 @@
+/* ============================================
+   Expense Tracker - Dark Mode Stylesheet
+   ============================================ */
+
+/* Dark Mode Variables */
+.dark {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.dark body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+}
+
+/* Dark Mode Navigation */
+.dark nav {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dark nav .text-gray-600 {
+    color: var(--text-secondary);
+}
+
+.dark nav .hover\:bg-gray-100:hover {
+    background-color: #334155;
+}
+
+/* Dark Mode Cards */
+.dark .bg-white {
+    background-color: var(--card-bg) !important;
+}
+
+.dark .text-gray-900 {
+    color: var(--text-primary) !important;
+}
+
+.dark .text-gray-800 {
+    color: #e2e8f0 !important;
+}
+
+.dark .text-gray-700 {
+    color: #cbd5e1 !important;
+}
+
+.dark .text-gray-600 {
+    color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-500 {
+    color: #64748b !important;
+}
+
+/* Dark Mode Borders */
+.dark .border {
+    border-color: var(--border-color);
+}
+
+.dark .border-b {
+    border-color: var(--border-color);
+}
+
+.dark .border-t {
+    border-color: var(--border-color);
+}
+
+.dark .border-l-4 {
+    border-color: var(--border-color);
+}
+
+.dark .divide-y > * + * {
+    border-color: var(--border-color);
+}
+
+/* Dark Mode Inputs */
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: #0f172a;
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.dark input::placeholder {
+    color: #64748b;
+}
+
+.dark input:focus,
+.dark select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Dark Mode Table */
+.dark .bg-gray-50 {
+    background-color: #1e293b !important;
+}
+
+.dark .data-table tbody tr:hover {
+    background-color: #334155 !important;
+}
+
+.dark .transaction-row:hover {
+    background-color: #334155;
+}
+
+/* Dark Mode Modal */
+.dark #transactionModalContent,
+.dark #budgetModalContent {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.dark #transactionModalContent .text-gray-900,
+.dark #budgetModalContent .text-gray-900 {
+    color: var(--text-primary);
+}
+
+.dark #transactionModalContent .text-gray-700,
+.dark #budgetModalContent .text-gray-700 {
+    color: #cbd5e1;
+}
+
+/* Dark Mode Select Options */
+.dark select option {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+/* Dark Mode Charts Container */
+.dark canvas {
+    filter: brightness(0.95);
+}
+
+/* Dark Mode Scrollbar */
+.dark ::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Dark Mode Toast */
+.dark .toast {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Dark Mode Budget Progress Background */
+.dark .bg-gray-200 {
+    background-color: #334155 !important;
+}
+
+/* Dark Mode Peer Checked States */
+.dark .peer-checked\:bg-emerald-50 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+}
+
+.dark .peer-checked\:bg-red-50 {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+/* Dark Mode Hover States */
+.dark .hover\:bg-gray-50:hover {
+    background-color: #334155 !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+    background-color: #334155 !important;
+}
+
+/* Dark Mode Empty State */
+.dark .empty-state-icon {
+    color: #475569;
+}
+
+/* Transition for dark mode toggle */
+body,
+body * {
+    transition-property: background-color, border-color, color;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+}
+
+/* Exclude certain elements from color transition */
+canvas,
+.toast,
+.modal-content {
+    transition-property: transform, opacity;
+}
